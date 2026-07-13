@@ -48,7 +48,7 @@ class SatelliteVisualizer:
                 else:
                     i += 1
 
-            # ---------- 名称映射 ----------
+            # ---------- 新增名称映射 ----------
             sat_name_map = {
                 40: "A47", 38: "A48", 39: "A49", 37: "A50", 36: "A51",
                 35: "A52", 34: "A53", 33: "A54", 32: "A55", 31: "A56",
@@ -64,9 +64,9 @@ class SatelliteVisualizer:
                 56: "A62", 57: "A63", 58: "A64", 59: "A65", 60: "A66"
             }
             for idx, sat in enumerate(self.satellites):
-                seq = idx + 1
+                seq = idx + 1  # 序号从1开始
                 if seq in sat_name_map:
-                    sat.name = sat_name_map[seq]
+                    sat.name = sat_name_map[seq]   # 直接修改 EarthSatellite 的 name 属性
             # ----------------------------------
 
             print(f"成功加载 {len(self.satellites)} 颗卫星")
@@ -148,17 +148,13 @@ class SatelliteVisualizer:
         positions = self.get_satellite_positions(target_time)
         beijing_time = target_time.astimezone(self.beijing_tz).strftime("%Y-%m-%d %H:%M:%S")
         fig = go.Figure()
-        # 根据屏幕宽度动态调整标记大小（简单起见用固定值，手机小一点）
-        marker_size_small = 8
-        marker_size_large = 12
-        # 实际应用中无法在此获取屏幕宽度，保持适中大小
         if positions['lats']:
             for i in range(len(positions['lats'])):
                 lat,lon,alt = positions['lats'][i],positions['lons'][i],positions['alts'][i]
                 name,ground_radius = positions['names'][i],positions['ground_radii'][i]
                 circle_data = positions['coverage_circles'][i]
                 is_covering = covering_indices and (i+1) in covering_indices
-                marker_size = marker_size_large if is_covering else marker_size_small
+                marker_size = 10 if is_covering else 6
                 marker_color = '#00FF00' if is_covering else '#FF3333'
                 marker_border = '#00CC00' if is_covering else '#CC0000'
                 fig.add_trace(go.Scattergeo(
@@ -167,7 +163,7 @@ class SatelliteVisualizer:
                                line=dict(width=2 if is_covering else 1, color=marker_border),
                                opacity=1.0 if is_covering else 0.8),
                     text=[positions['names'][i]], textposition="top center",
-                    textfont=dict(size=10 if is_covering else 8, color='#00FF00' if is_covering else '#FF6666'),
+                    textfont=dict(size=8 if is_covering else 6, color='#00FF00' if is_covering else '#FF6666'),
                     hovertext=f"<b>卫星 #{i+1}</b><br>名称: {name}<br>纬度: {lat:.2f}°<br>经度: {lon:.2f}°<br>高度: {alt:.1f} km<br>覆盖半径: {ground_radius:.0f} km",
                     hoverinfo='text', showlegend=False
                 ))
@@ -181,21 +177,20 @@ class SatelliteVisualizer:
         if query_point:
             fig.add_trace(go.Scattergeo(
                 lon=[query_point['lon']], lat=[query_point['lat']], mode='markers',
-                marker=dict(size=14, color='#FFFF00', symbol='star', line=dict(width=2, color='#FFA500')),
+                marker=dict(size=12, color='#FFFF00', symbol='star', line=dict(width=2, color='#FFA500')),
                 name='查询点', hovertext=f"<b>查询点</b><br>纬度: {query_point['lat']:.4f}°<br>经度: {query_point['lon']:.4f}°",
                 hoverinfo='text'
             ))
-        # 图例项
         fig.add_trace(go.Scattergeo(lon=[None],lat=[None],mode='markers',
-            marker=dict(size=10,color='#FF3333',symbol='circle',line=dict(width=1,color='#CC0000')),
+            marker=dict(size=8,color='#FF3333',symbol='circle',line=dict(width=1,color='#CC0000')),
             name='卫星',showlegend=True))
         if covering_indices:
             fig.add_trace(go.Scattergeo(lon=[None],lat=[None],mode='markers',
-                marker=dict(size=10,color='#00FF00',symbol='circle',line=dict(width=1,color='#00CC00')),
+                marker=dict(size=8,color='#00FF00',symbol='circle',line=dict(width=1,color='#00CC00')),
                 name='覆盖卫星',showlegend=True))
         if query_point:
             fig.add_trace(go.Scattergeo(lon=[None],lat=[None],mode='markers',
-                marker=dict(size=12,color='#FFFF00',symbol='star',line=dict(width=1.5,color='#FFA500')),
+                marker=dict(size=10,color='#FFFF00',symbol='star',line=dict(width=1.5,color='#FFA500')),
                 name='查询点',showlegend=True))
         title_text = f'🕐 查询时间: {beijing_time} 北京时间'
         fig.update_layout(
@@ -205,22 +200,20 @@ class SatelliteVisualizer:
                      showcountries=True, countrycolor='rgb(90,90,90)', showlakes=True, lakecolor='rgb(20,30,45)',
                      showframe=False, bgcolor='rgb(15,20,30)', coastlinewidth=0.8, countrywidth=0.5),
             paper_bgcolor='rgb(15,20,30)', plot_bgcolor='rgb(15,20,30)',
-            margin=dict(l=0,r=0,t=50,b=0), showlegend=True,
+            margin=dict(l=0,r=0,t=40,b=0), showlegend=True,
             legend=dict(x=0.01,y=0.99,xanchor='left',yanchor='top',bgcolor='rgba(20,25,35,0.8)',
-                       bordercolor='rgba(100,100,100,0.3)',borderwidth=1,font=dict(color='#CCCCCC',size=11)),
+                       bordercolor='rgba(100,100,100,0.3)',borderwidth=1,font=dict(color='#CCCCCC',size=10)),
             autosize=True, uirevision='constant', hovermode='closest',
-            hoverlabel=dict(bgcolor='rgba(15,20,30,0.95)',font=dict(color='white',size=13),bordercolor='#4FC3F7')
+            hoverlabel=dict(bgcolor='rgba(15,20,30,0.95)',font=dict(color='white',size=12),bordercolor='#4FC3F7')
         )
         return fig
 
 
 app = dash.Dash(__name__)
-server = app.server  # 暴露 server 给 gunicorn
-
 print("正在初始化卫星可视化系统...")
 viz = SatelliteVisualizer()
 
-# 样式常量（同之前，但会被CSS覆盖调整）
+# 样式常量
 PANEL_BG = 'rgba(18,22,32,0.96)'
 BORDER_COLOR = 'rgba(255,255,255,0.12)'
 ACCENT_BLUE = '#4FC3F7'
@@ -235,27 +228,6 @@ default_date = now.strftime("%Y-%m-%d")
 default_time = now.strftime("%H:%M")
 
 app.layout = html.Div([
-    # 横屏提示遮罩（可关闭）
-    html.Div(id='rotate-hint', children=[
-        html.Div([
-            html.Div('📱 请旋转手机至横屏以获得最佳体验', style={
-                'color': 'white', 'fontSize': '18px', 'textAlign': 'center', 'marginBottom': '15px'
-            }),
-            html.Button('继续使用竖屏', id='close-rotate-hint', style={
-                'background': 'rgba(255,255,255,0.2)', 'border': '1px solid rgba(255,255,255,0.3)',
-                'color': 'white', 'padding': '10px 20px', 'borderRadius': '8px', 'fontSize': '14px',
-                'cursor': 'pointer'
-            })
-        ], style={
-            'textAlign': 'center', 'background': 'rgba(0,0,0,0.8)', 'padding': '30px',
-            'borderRadius': '16px', 'maxWidth': '90%'
-        })
-    ], style={
-        'position': 'fixed', 'top': 0, 'left': 0, 'width': '100vw', 'height': '100vh',
-        'backgroundColor': 'rgba(15,20,30,0.95)', 'display': 'none', 'zIndex': '2000',
-        'justifyContent': 'center', 'alignItems': 'center', 'flexDirection': 'column'
-    }),
-    
     dcc.Interval(id='interval-component', interval=10*1000, n_intervals=0),
     dcc.Store(id='query-point', data=None),
     dcc.Store(id='covering-indices', data=None),
@@ -263,41 +235,35 @@ app.layout = html.Div([
     dcc.Store(id='target-timestamp', data=None),
     
     dcc.Graph(id='live-satellite-map', figure=viz.create_fullscreen_map(),
-              config={
-                  'displayModeBar': True,
-                  'displaylogo': False,
-                  'scrollZoom': True,   # 保留双指缩放
-                  'responsive': True,
-                  'modeBarButtonsToRemove': ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines'],
-                  'modeBarButtonsToAdd': [],
-                  'toImageButtonOptions': {'format': 'png', 'filename': 'satellite_map'}
-              },
+              config={'displayModeBar': True, 'displaylogo': False, 'scrollZoom': True, 'responsive': True},
               style={'height': '100vh', 'width': '100vw', 'position': 'fixed', 'top': 0, 'left': 0}),
     
-    html.Button('🔍 查询', id='toggle-query-btn',
+    html.Button('🔍 覆盖查询', id='toggle-query-btn',
                 style={'position': 'fixed', 'top': '15px', 'right': '15px', 'zIndex': '1000',
-                       'padding': '12px 16px', 'backgroundColor': PANEL_BG, 'color': TEXT_COLOR,
+                       'padding': '10px 18px', 'backgroundColor': PANEL_BG, 'color': TEXT_COLOR,
                        'border': f'1px solid {BORDER_COLOR}', 'borderRadius': '10px', 'cursor': 'pointer',
                        'fontSize': '14px', 'fontWeight': '500', 'fontFamily': 'Arial, sans-serif',
                        'backdropFilter': 'blur(10px)', 'boxShadow': '0 4px 15px rgba(0,0,0,0.3)',
-                       'transition': 'all 0.2s ease', 'letterSpacing': '0.5px',
-                       'minWidth': '44px', 'minHeight': '44px'}),
+                       'transition': 'all 0.2s ease', 'letterSpacing': '0.5px'}),
     
     html.Div([
         html.Div([
             html.Span('📍 卫星覆盖查询', style={'color': TEXT_COLOR, 'fontSize': '17px', 'fontWeight': '600', 'fontFamily': 'Arial, sans-serif'}),
             html.Button('✕', id='close-panel-btn',
-                       style={'background': 'none', 'border': 'none', 'color': TEXT_SECONDARY, 'fontSize': '22px',
-                              'cursor': 'pointer', 'padding': '4px 10px', 'borderRadius': '6px',
-                              'transition': 'all 0.2s ease', 'lineHeight': '1'})
+                       style={'background': 'none', 'border': 'none', 'color': TEXT_SECONDARY, 'fontSize': '18px',
+                              'cursor': 'pointer', 'padding': '2px 8px', 'borderRadius': '6px',
+                              'transition': 'all 0.2s ease'})
         ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center', 'marginBottom': '20px'}),
         
+        # 时间选择区域（美化重点）
         html.Div([
             html.Div([
                 html.Span('🕐', style={'fontSize': '16px', 'marginRight': '8px'}),
                 html.Span('查询时间', style={'color': TEXT_COLOR, 'fontSize': '13px', 'fontWeight': '500',
                                              'fontFamily': 'Arial, sans-serif'})
             ], style={'marginBottom': '12px', 'display': 'flex', 'alignItems': 'center'}),
+            
+            # 日期选择器和时间输入框放在同一行
             html.Div([
                 dcc.DatePickerSingle(
                     id='query-date',
@@ -307,48 +273,63 @@ app.layout = html.Div([
                     style={'flex': '1', 'marginRight': '8px'}
                 ),
                 html.Div([
-                    dcc.Input(id='query-time', type='text', value=default_time,
-                              placeholder='HH:MM', className='time-input')
+                    dcc.Input(
+                        id='query-time',
+                        type='text',
+                        value=default_time,
+                        placeholder='HH:MM',
+                        className='time-input'
+                    )
                 ], style={'width': '80px'})
             ], style={'display': 'flex', 'alignItems': 'center', 'marginBottom': '12px'}),
+            
+            # 快捷按钮组
             html.Div([
                 html.Button('🔄 现在', id='now-btn', className='time-btn time-btn-primary'),
                 html.Button('⏪ -1h', id='minus-1h-btn', className='time-btn'),
                 html.Button('⏩ +1h', id='plus-1h-btn', className='time-btn'),
             ], style={'display': 'flex', 'gap': '6px'}),
-            html.Div(style={'height': '16px'}),
+            
+            html.Div(style={'height': '16px'}),  # 间隔
             html.Hr(style={'borderColor': 'rgba(255,255,255,0.08)', 'margin': '0 0 18px 0'}),
-        ], style={'backgroundColor': 'rgba(25,30,42,0.5)', 'borderRadius': '10px',
-                  'padding': '14px', 'marginBottom': '8px', 'border': '1px solid rgba(255,255,255,0.06)'}),
+        ], style={
+            'backgroundColor': 'rgba(25,30,42,0.5)',
+            'borderRadius': '10px',
+            'padding': '14px',
+            'marginBottom': '8px',
+            'border': '1px solid rgba(255,255,255,0.06)'
+        }),
         
+        # 经纬度输入
         html.Div([
             html.Div([
-                html.Label('🌐 纬度', className='input-label'),
+                html.Label('🌐 纬度', style={'color': TEXT_SECONDARY, 'fontSize': '11px', 'fontWeight': '500', 'marginBottom': '5px',
+                                             'textTransform': 'uppercase', 'letterSpacing': '1px'}),
                 dcc.Input(id='input-lat', type='number', placeholder='39.9', min=-90, max=90, step=0.1,
                           className='coord-input')
-            ], className='input-group'),
+            ], style={'marginBottom': '12px'}),
             html.Div([
-                html.Label('🌐 经度', className='input-label'),
+                html.Label('🌐 经度', style={'color': TEXT_SECONDARY, 'fontSize': '11px', 'fontWeight': '500', 'marginBottom': '5px',
+                                             'textTransform': 'uppercase', 'letterSpacing': '1px'}),
                 dcc.Input(id='input-lon', type='number', placeholder='116.4', min=-180, max=180, step=0.1,
                           className='coord-input')
-            ], className='input-group'),
+            ], style={'marginBottom': '18px'}),
+            
             html.Div([
                 html.Button('🔍 查询', id='query-btn', className='action-btn action-btn-primary'),
                 html.Button('🗑️ 清除', id='clear-btn', className='action-btn action-btn-danger'),
-            ], style={'display': 'flex', 'gap': '8px', 'marginTop': '8px'}),
+            ], style={'display': 'flex', 'gap': '8px'}),
         ]),
+        
         html.Div(id='query-result', className='result-box')
-    ], id='query-panel', className='query-panel', style={  # 添加类名方便CSS覆盖
-        'position': 'fixed', 'top': '60px', 'right': '15px', 'width': '340px', 'padding': '22px',
-        'backgroundColor': PANEL_BG, 'borderRadius': '14px', 'border': f'1px solid {BORDER_COLOR}',
-        'zIndex': '999', 'display': 'none', 'backdropFilter': 'blur(20px)',
-        'boxShadow': '0 8px 30px rgba(0,0,0,0.4)', 'fontFamily': 'Arial, sans-serif',
-        'maxHeight': '80vh', 'overflowY': 'auto'
-    })
+    ], id='query-panel', style={'position': 'fixed', 'top': '60px', 'right': '15px', 'width': '340px', 'padding': '22px',
+               'backgroundColor': PANEL_BG, 'borderRadius': '14px', 'border': f'1px solid {BORDER_COLOR}',
+               'zIndex': '999', 'display': 'none', 'backdropFilter': 'blur(20px)',
+               'boxShadow': '0 8px 30px rgba(0,0,0,0.4)', 'fontFamily': 'Arial, sans-serif'})
 ], style={'margin': 0, 'padding': 0, 'height': '100vh', 'width': '100vw', 'overflow': 'hidden', 'backgroundColor': 'rgb(15,20,30)'})
 
 
-# 回调函数（基本保持，部分添加移动端友好）
+# 回调函数保持不变（略作适配）
 @app.callback(
     [Output('query-panel', 'style'), Output('show-query-panel', 'data')],
     Input('toggle-query-btn', 'n_clicks'),
@@ -358,7 +339,7 @@ def toggle_query_panel(n_clicks, current_state):
     base = {'position': 'fixed', 'top': '60px', 'right': '15px', 'width': '340px', 'padding': '22px',
             'backgroundColor': PANEL_BG, 'borderRadius': '14px', 'border': f'1px solid {BORDER_COLOR}',
             'zIndex': '999', 'backdropFilter': 'blur(20px)', 'boxShadow': '0 8px 30px rgba(0,0,0,0.4)',
-            'fontFamily': 'Arial, sans-serif', 'maxHeight': '80vh', 'overflowY': 'auto'}
+            'fontFamily': 'Arial, sans-serif'}
     if n_clicks and n_clicks % 2 == 1:
         return {**base, 'display': 'block'}, True
     return {**base, 'display': 'none'}, False
@@ -371,7 +352,7 @@ def close_query_panel(n_clicks):
     base = {'position': 'fixed', 'top': '60px', 'right': '15px', 'width': '340px', 'padding': '22px',
             'backgroundColor': PANEL_BG, 'borderRadius': '14px', 'border': f'1px solid {BORDER_COLOR}',
             'zIndex': '999', 'backdropFilter': 'blur(20px)', 'boxShadow': '0 8px 30px rgba(0,0,0,0.4)',
-            'display': 'none', 'fontFamily': 'Arial, sans-serif', 'maxHeight': '80vh', 'overflowY': 'auto'}
+            'display': 'none', 'fontFamily': 'Arial, sans-serif'}
     return base, False
 
 @app.callback(
@@ -485,136 +466,90 @@ def update_map(n_intervals, query_point, covering_indices, target_timestamp):
         target_time = None
     return viz.create_fullscreen_map(query_point, covering_indices, target_time)
 
-# 旋转提示关闭按钮的回调
-@app.callback(
-    Output('rotate-hint', 'style'),
-    Input('close-rotate-hint', 'n_clicks'),
-    prevent_initial_call=True
-)
-def close_rotate_hint(n_clicks):
-    # 点击后永久隐藏提示（本次会话）
-    return {'display': 'none'}
 
-
-# 增强的CSS样式（重点是移动端适配）
-app.index_string = '''<!DOCTYPE html><html><head>{%metas%}
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>🛰️ 卫星覆盖查询系统</title>{%css%}
+# 增强的CSS样式
+app.index_string = '''<!DOCTYPE html><html><head>{%metas%}<title>🛰️ 卫星覆盖查询系统</title>{%css%}
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{margin:0;padding:0;overflow:hidden;background:rgb(15,20,30);height:100vh;width:100vw;font-family:'Segoe UI',Arial,sans-serif; touch-action: manipulation;}
+html,body{margin:0;padding:0;overflow:hidden;background:rgb(15,20,30);height:100vh;width:100vw;font-family:'Segoe UI',Arial,sans-serif}
 
-/* 横屏提示默认隐藏（竖屏时通过媒体查询显示） */
-#rotate-hint { display: none; }
+/* 按钮悬停效果 */
+#toggle-query-btn:hover{background:rgba(30,36,50,0.95)!important;border-color:rgba(255,255,255,0.25)!important;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.4)!important}
+#close-panel-btn:hover{color:#E0E0E0!important;background:rgba(255,255,255,0.08)!important}
+#query-btn:hover{background:rgba(79,195,247,0.25)!important;border-color:rgba(79,195,247,0.5)!important}
+#clear-btn:hover{background:rgba(255,82,82,0.2)!important;border-color:rgba(255,82,82,0.4)!important}
 
-/* 基础按钮和输入框放大至移动友好尺寸 */
-button, .time-btn, .action-btn, #toggle-query-btn {
-    min-height: 44px;
-    min-width: 44px;
+/* 通用输入框样式 */
+.coord-input{
+    width:100%; padding:10px 12px; background-color:rgba(30,35,50,0.8); color:#E0E0E0;
+    border:1px solid rgba(255,255,255,0.12); border-radius:8px; font-size:13px;
+    font-family:Arial,sans-serif; outline:none; transition:all 0.2s ease;
 }
-.coord-input, .time-input, .date-picker input {
-    height: 44px;
-    font-size: 16px !important; /* 防止iOS缩放 */
+.coord-input:focus{border-color:rgba(79,195,247,0.5)!important;box-shadow:0 0 0 2px rgba(79,195,247,0.1)!important}
+
+/* 时间输入框 */
+.time-input{
+    width:100%; padding:8px 10px; background-color:rgba(30,35,50,0.9); color:#E0E0E0;
+    border:1px solid rgba(255,255,255,0.15); border-radius:6px; font-size:13px;
+    font-family:'Consolas',monospace; text-align:center; letter-spacing:1px;
+    transition:all 0.2s ease;
 }
+.time-input:focus{border-color:rgba(79,195,247,0.5)!important;box-shadow:0 0 0 2px rgba(79,195,247,0.1)!important}
 
-/* 查询面板滚动条 */
-.query-panel::-webkit-scrollbar { width: 4px; }
-.query-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-
-/* 移动端媒体查询 */
-@media (max-width: 768px) {
-    /* 地图标题缩小 */
-    .gtitle { font-size: 14px !important; }
-    /* 图例字体缩小 */
-    .legendtext { font-size: 10px !important; }
-    /* 查询面板 */
-    #query-panel {
-        width: 92vw !important;
-        right: 4vw !important;
-        top: 50px !important;
-        padding: 14px !important;
-        max-height: 70vh !important;
-        border-radius: 12px !important;
-    }
-    #toggle-query-btn {
-        top: 8px !important;
-        right: 8px !important;
-        padding: 10px 14px !important;
-        font-size: 14px !important;
-        border-radius: 8px !important;
-    }
-    .coord-input, .time-input {
-        height: 40px;
-    }
-    .input-group {
-        margin-bottom: 10px;
-    }
-    .result-box {
-        max-height: 150px;
-        font-size: 11px;
-    }
+/* 日期选择器美化 */
+.date-picker .DateInput_input{
+    background-color:rgba(30,35,50,0.9)!important; color:#E0E0E0!important;
+    border:1px solid rgba(255,255,255,0.15)!important; border-radius:6px!important;
+    padding:8px 10px!important; font-size:13px!important; font-family:Arial,sans-serif!important;
+    line-height:normal!important;
 }
+.DateInput{width:100%!important}
+.SingleDatePickerInput{border:none!important;background:transparent!important}
 
-@media (max-width: 480px) {
-    #query-panel {
-        width: 96vw !important;
-        right: 2vw !important;
-        top: 45px !important;
-        padding: 10px !important;
-    }
-    .time-btn {
-        padding: 8px 2px;
-        font-size: 11px;
-    }
-    .action-btn {
-        padding: 10px 5px;
-        font-size: 14px;
-    }
+/* 时间快捷按钮 */
+.time-btn{
+    flex:1; padding:8px 4px; border-radius:6px; cursor:pointer; font-size:12px;
+    font-weight:500; font-family:Arial,sans-serif; transition:all 0.2s ease;
+    background:rgba(255,255,255,0.03); color:#B0B0B0;
+    border:1px solid rgba(255,255,255,0.1);
+}
+.time-btn:hover{background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.2); color:#E0E0E0}
+.time-btn-primary{background:rgba(79,195,247,0.15); color:#4FC3F7; border-color:rgba(79,195,247,0.3)}
+.time-btn-primary:hover{background:rgba(79,195,247,0.25)!important; border-color:rgba(79,195,247,0.5)!important}
+
+/* 操作按钮 */
+.action-btn{
+    flex:1; padding:10px; border-radius:8px; cursor:pointer; font-size:13px;
+    font-weight:500; font-family:Arial,sans-serif; transition:all 0.2s ease;
+}
+.action-btn-primary{background:rgba(79,195,247,0.15); color:#4FC3F7; border:1px solid rgba(79,195,247,0.3)}
+.action-btn-primary:hover{background:rgba(79,195,247,0.25)!important; border-color:rgba(79,195,247,0.5)!important}
+.action-btn-danger{background:rgba(255,82,82,0.1); color:#FF5252; border:1px solid rgba(255,82,82,0.2)}
+.action-btn-danger:hover{background:rgba(255,82,82,0.2)!important; border-color:rgba(255,82,82,0.4)!important}
+
+/* 结果展示区 */
+.result-box{
+    color:#E0E0E0; max-height:180px; overflow-y:auto; margin-top:15px;
+    padding:12px; background-color:rgba(25,30,42,0.6); border-radius:8px;
+    border:1px solid rgba(255,255,255,0.06); font-size:12px; font-family:Arial,sans-serif;
 }
 
-/* 竖屏时显示旋转提示 */
-@media (orientation: portrait) {
-    #rotate-hint {
-        display: flex !important;
-    }
-    /* 如果用户已经关闭过提示，需隐藏（通过回调设置 display:none，但优先级低于!important，所以用类来控制） */
-    #rotate-hint[style*="display: none"] {
-        display: none !important;
-    }
-}
-/* 注意：上面那个属性选择器可能不生效，因为Dash设置的是内联style。我们改为使用一个class来控制。 */
-/* 这里修改：用回调设置内联style display:none，并用 !important 覆盖 portrait 的 display:flex，所以正确 */
-/* 即上面的 portrait 规则优先级较低，内联 style 的 display:none 会覆盖它，所以关闭后不会再显示 */
-
-/* 针对 Dash 日期选择器的小屏优化 */
-.SingleDatePicker, .SingleDatePickerInput {
-    width: 100% !important;
-}
-.DateInput {
-    width: 100% !important;
-    font-size: 14px !important;
-}
-
-/* 模式栏按钮放大一点 */
-.modebar-btn { 
-    width: 36px !important;
-    height: 36px !important;
-}
-.modebar-group { 
-    padding: 2px !important;
-}
+/* 滚动条 */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2)}
 </style></head>
 <body>{%app_entry%}<footer>{%config%}{%scripts%}{%renderer%}</footer></body></html>'''
 
 # 在 app = dash.Dash(__name__) 附近或之后添加
 server = app.server
 
+# 在文件末尾
 if __name__ == "__main__":
     print("╔══════════════════════════════════════╗")
-    print("║  🛰️  卫星覆盖查询系统 v3.2        ║")
+    print("║  🛰️  卫星覆盖查询系统 v3.1        ║")
     print(f"║  📡 已加载 {len(viz.satellites)} 颗卫星           ║")
     print("║  🕐 支持历史时间查询               ║")
-    print("║  📱 移动端适配优化                ║")
     print("║  🔗 http://127.0.0.1:8050         ║")
     print("╚══════════════════════════════════════╝")
     import os
